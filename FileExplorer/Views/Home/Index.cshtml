@@ -1,0 +1,118 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<link href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" />
+<button onclick="getInfo(null)">Home</button>
+<button onclick="getInfo(previous)">Up</button>
+
+
+<table id="tblDirectories">
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Size</td>
+            <td>Date</td>
+        </tr>
+        <tr>
+            <td>
+                <input type="text" />
+            </td>
+            <td>
+                <input type="text" />
+            </td>
+            <td>
+                <input type="text"/>
+            </td>
+        </tr>
+    </thead>
+       
+</table>
+
+
+
+@section Scripts {
+<script src="//code.jquery.com/jquery-1.12.3.js"></script>
+<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script>
+   let previous;
+   let tr;
+   var table;
+
+   function getInfo(path) {
+        console.log('get info')
+        console.log(path)
+     $.ajax({
+
+            url: '/Home/GetDirectories',
+            dataType: "json",
+            type: "POST",
+            contentType: 'application/json; charset=utf-8',
+
+            data: JSON.stringify(path),
+            success: function (data) {
+
+
+                $(".toDelete").remove();
+               var tr='<tr></tr>';
+               
+                for (var i = 0; i < data.length; i++) 
+                {
+                    tr = tr + '<tr class="toDelete" onclick="getInfo(this.id)" id="' + data[i].name + '">';
+                    tr = tr + '<td>' + data[i].name + '</td>';
+                    tr = tr + '<td>' + data[i].size + '</td>';
+                    tr = tr + '<td>' + data[i].date + '</td>';
+                    tr = tr + '</tr>';
+                    name = data[i].name;       
+                }
+
+                    if (path!=null)
+                    previous = path.split('\\').slice(0,-1).join('\\');
+                    else
+                    previous = data[0].name.split('\\').slice(0,-2).join('\\');   
+
+                $('#tblDirectories').append(tr);
+
+    
+                  tblFormate();
+                function tblFormate() 
+                {      
+                    table = $('#tblDirectories').DataTable(
+                    {
+                        destroy: true,
+                        retrieve: true,
+                        paging: false,
+                        searching: false,
+                        ordering: false,
+                        info: false
+                        // "lengthMenu": [[5, 10, 50, 100, 150, -1], [5, 10, 50, 100, 150, "All"]]
+                    });
+
+
+                    table.columns().eq(0).each(function (colIdx) {
+                        $('input', table.column(colIdx).header()).on('keyup change', function () {
+                            table
+                                .column(colIdx)
+                                .search(this.value)
+                                .draw();
+                        });
+                    });
+                }     
+            },
+            error: function (xhr) {
+                console.error(xhr);
+            }
+        });
+    }
+    $(document).ready(function () 
+    {
+        console.log('doc ready')
+        getInfo();
+    });
+
+
+
+</script>
+
+
+}
